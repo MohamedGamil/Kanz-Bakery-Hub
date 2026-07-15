@@ -548,9 +548,15 @@ async function main() {
   console.log(`   ${CATEGORIES.length} categories  •  ${PRODUCTS.length} products`);
 }
 
-main()
-  .catch((err) => {
-    console.error("❌ Seed failed:", err);
-    process.exit(1);
-  })
-  .finally(() => pool.end());
+/** Exported so it can be called from the admin seed endpoint without closing the pool. */
+export { main as runSeed };
+
+// CLI entry point only — not executed when imported as a module
+if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
+  main()
+    .catch((err) => {
+      console.error("❌ Seed failed:", err);
+      process.exit(1);
+    })
+    .finally(() => pool.end());
+}

@@ -21,3 +21,8 @@ timeoutMs = 20000
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.production]
+ADMIN_SEED_TOKEN = "ddb33147baa65abf21399d515ab50f4fc4981320"
