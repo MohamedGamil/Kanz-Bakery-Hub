@@ -32,7 +32,6 @@ export default function Menu() {
   const [selectedCategory, setSelectedCategory] = useState<number | undefined>(
     initialCategoryId ? parseInt(initialCategoryId, 10) : undefined
   );
-  const [showAvailableOnly, setShowAvailableOnly] = useState(false);
 
   useEffect(() => {
     document.title = t("menu.pageTitle");
@@ -52,9 +51,8 @@ export default function Menu() {
     const params: Record<string, unknown> = { limit: 100 };
     if (selectedCategory) params.categoryId = selectedCategory;
     if (debouncedSearch) params.search = debouncedSearch;
-    if (showAvailableOnly) params.available = true;
     return params;
-  }, [selectedCategory, debouncedSearch, showAvailableOnly]);
+  }, [selectedCategory, debouncedSearch]);
 
   const { data: productsData, isLoading } = useListProducts(queryParams);
   const products = productsData?.items || [];
@@ -68,7 +66,7 @@ export default function Menu() {
     }
   };
 
-  const hasFilters = !!(selectedCategory || debouncedSearch || showAvailableOnly);
+  const hasFilters = !!(selectedCategory || debouncedSearch);
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-background">
@@ -115,18 +113,6 @@ export default function Menu() {
               </div>
             </div>
 
-            <div>
-              <h3 className="font-serif font-bold text-lg mb-4">{t("menu.filters")}</h3>
-              <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showAvailableOnly}
-                  onChange={(e) => setShowAvailableOnly(e.target.checked)}
-                  className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0"
-                />
-                <span>{t("menu.availableOnly")}</span>
-              </label>
-            </div>
           </aside>
 
           {/* Main content */}
@@ -198,18 +184,6 @@ export default function Menu() {
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <h3 className="font-serif font-bold text-lg mb-4">{t("menu.filters")}</h3>
-                      <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={showAvailableOnly}
-                          onChange={(e) => setShowAvailableOnly(e.target.checked)}
-                          className="rounded border-border text-primary focus:ring-primary h-4 w-4 shrink-0"
-                        />
-                        <span>{t("menu.availableOnly")}</span>
-                      </label>
-                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
@@ -231,17 +205,10 @@ export default function Menu() {
                     <X className="h-3 w-3 cursor-pointer ms-1 hover:text-primary" onClick={() => setSearchQuery("")} />
                   </Badge>
                 )}
-                {showAvailableOnly && (
-                  <Badge variant="secondary" className="flex items-center gap-1 font-normal bg-accent text-accent-foreground">
-                    {t("menu.availableLabel")}
-                    <X className="h-3 w-3 cursor-pointer ms-1 hover:text-primary" onClick={() => setShowAvailableOnly(false)} />
-                  </Badge>
-                )}
                 <button
                   onClick={() => {
                     handleCategoryClick(undefined);
                     setSearchQuery("");
-                    setShowAvailableOnly(false);
                   }}
                   className="text-xs text-muted-foreground hover:text-primary underline ms-2"
                 >
@@ -278,7 +245,6 @@ export default function Menu() {
                   onClick={() => {
                     handleCategoryClick(undefined);
                     setSearchQuery("");
-                    setShowAvailableOnly(false);
                   }}
                 >
                   {t("menu.clearFilters")}

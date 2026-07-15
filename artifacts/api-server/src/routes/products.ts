@@ -35,13 +35,13 @@ router.get("/products", async (req, res): Promise<void> => {
     return;
   }
 
-  const { categoryId, search, featured, available, page = 1, limit = 20 } = parsed.data;
+  const { categoryId, search, featured, available = true, page = 1, limit = 20 } = parsed.data;
   const offset = (page - 1) * limit;
 
-  const conditions: SQL[] = [];
+  // Always filter by available; defaults to true so unavailable products never appear in listings
+  const conditions: SQL[] = [eq(productsTable.available, available)];
   if (categoryId != null) conditions.push(eq(productsTable.categoryId, categoryId));
   if (featured != null) conditions.push(eq(productsTable.featured, featured));
-  if (available != null) conditions.push(eq(productsTable.available, available));
   if (search) conditions.push(ilike(productsTable.name, `%${search}%`));
 
   const baseQuery = productWithStats();
