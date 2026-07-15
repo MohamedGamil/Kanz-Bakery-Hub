@@ -466,33 +466,42 @@ async function main() {
   const catSlugs = CATEGORIES.map((c) => c.slug);
   const prodSlugs = PRODUCTS.map((p) => p.slug);
 
-  // 0. Clean up data that is NOT part of the canonical seed set ──────────────
-  //    Order: reviews → products → categories  (respects FK constraints)
-  console.log("Cleaning up non-seed data…");
+  // 0. Best-effort cleanup of non-canonical data ────────────────────────────
+  //    Each step is independent; FK constraints or missing tables are skipped.
+  console.log("Cleaning up non-seed data (best-effort)…");
 
-  // Delete reviews whose product is not in the seed
-  await db.execute(
-    sql.raw(`
-      DELETE FROM reviews
-      WHERE product_id IN (
-        SELECT id FROM products WHERE slug NOT IN (${prodSlugs.map((s) => `'${s}'`).join(",")})
-      )
-    `)
-  );
+  try {
+    await db.execute(
+      sql.raw(`
+        DELETE FROM reviews
+        WHERE product_id IN (
+          SELECT id FROM products WHERE slug NOT IN (${prodSlugs.map((s) => `'${s}'`).join(",")})
+        )
+      `)
+    );
+  } catch (e) {
+    console.warn("Skipping reviews cleanup:", (e as Error).message);
+  }
 
-  // Delete products not in the seed
-  await db.execute(
-    sql.raw(`
-      DELETE FROM products WHERE slug NOT IN (${prodSlugs.map((s) => `'${s}'`).join(",")})
-    `)
-  );
+  try {
+    await db.execute(
+      sql.raw(`
+        DELETE FROM products WHERE slug NOT IN (${prodSlugs.map((s) => `'${s}'`).join(",")})
+      `)
+    );
+  } catch (e) {
+    console.warn("Skipping products cleanup:", (e as Error).message);
+  }
 
-  // Delete categories not in the seed
-  await db.execute(
-    sql.raw(`
-      DELETE FROM categories WHERE slug NOT IN (${catSlugs.map((s) => `'${s}'`).join(",")})
-    `)
-  );
+  try {
+    await db.execute(
+      sql.raw(`
+        DELETE FROM categories WHERE slug NOT IN (${catSlugs.map((s) => `'${s}'`).join(",")})
+      `)
+    );
+  } catch (e) {
+    console.warn("Skipping categories cleanup:", (e as Error).message);
+  }
 
   // 1. Upsert categories ─────────────────────────────────────────────────────
   console.log(`Upserting ${CATEGORIES.length} categories…`);
