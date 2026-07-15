@@ -2,9 +2,9 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
+import adminRouter from "./routes/admin";
 import { logger } from "./lib/logger";
 import { WebhookHandlers } from "./webhookHandlers";
-import { runSeed } from "./seed";
 
 const app: Express = express();
 
@@ -55,22 +55,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
-
-// One-time admin seed endpoint — protected by ADMIN_SEED_TOKEN env var
-app.post("/api/admin/seed", express.json(), async (req, res): Promise<void> => {
-  const token = process.env.ADMIN_SEED_TOKEN;
-  if (!token || req.headers["x-seed-token"] !== token) {
-    res.status(401).json({ error: "Unauthorized" });
-    return;
-  }
-  try {
-    await runSeed();
-    res.json({ ok: true, message: "Seed complete" });
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    logger.error({ err }, "Seed failed");
-    res.status(500).json({ error: msg });
-  }
-});
+app.use("/api", adminRouter);
 
 export default app;
