@@ -1,0 +1,638 @@
+# Build Prompt: Kanz Bakery Web Application
+
+Build a polished, mobile-first web application for a bakery called **Kanz Bakery**.
+
+The application should serve as both:
+
+1. A public-facing digital storefront where customers can learn about the bakery and browse its products.
+2. A foundation for future online ordering, catering, customer accounts, loyalty features, promotions, and operational integrations.
+
+The implementation should prioritize **clean architecture, maintainability, extensibility, security, accessibility, and excellent user experience** rather than building the fastest possible prototype.
+
+---
+
+## Product Goals
+
+Create a modern bakery website that allows customers to:
+
+* Learn about Kanz Bakery, its story, values, and specialties.
+* Browse the bakery menu by category.
+* Search and filter menu items.
+* View detailed information about each item.
+* See product images, descriptions, ingredients, prices, allergens, and availability.
+* Rate products and optionally leave reviews.
+* Submit inquiries for:
+
+  * Bulk orders.
+  * Corporate orders.
+  * Events.
+  * Catering.
+* Select a preferred date and time for bulk or catering requests.
+* Easily contact the bakery.
+* Use the entire application comfortably from mobile, tablet, and desktop devices.
+
+The initial version does **not** need to implement full online payment or real-time delivery logistics unless explicitly added later. However, the architecture should make these features easy to introduce in the future.
+
+---
+
+# Core Functional Areas
+
+## 1. Home Page
+
+Create an attractive landing page containing:
+
+* Hero section with strong Kanz Bakery branding.
+* Short introduction to the bakery.
+* Featured products or best sellers.
+* Product categories.
+* Catering and bulk-order call-to-action.
+* Customer testimonials or ratings.
+* Bakery story or brand values.
+* Contact information.
+* Opening hours.
+* Location information.
+* Social media links.
+* Clear calls to action such as:
+
+  * Browse Menu.
+  * Request Catering.
+  * Contact Us.
+
+The page should feel premium, warm, modern, and appropriate for an artisanal bakery.
+
+---
+
+## 2. About Kanz Bakery
+
+Create an About page that can contain:
+
+* Bakery story.
+* Mission and values.
+* Baking philosophy.
+* Ingredients and sourcing information.
+* Team or founder information.
+* Photos of the bakery or production process.
+
+Content should be editable without requiring major code changes.
+
+---
+
+## 3. Menu and Product Catalog
+
+Create a structured menu system.
+
+Support product categories such as:
+
+* Bread.
+* Pastries.
+* Cakes.
+* Desserts.
+* Cookies.
+* Savory items.
+* Seasonal products.
+
+The data model must not hard-code these categories.
+
+Users should be able to:
+
+* Browse all items.
+* Browse by category.
+* Search products.
+* Filter products.
+* Sort products where appropriate.
+* View featured or popular products.
+
+Each product should support:
+
+* Name.
+* Slug or unique URL.
+* Description.
+* Short description.
+* Price.
+* Images.
+* Category.
+* Ingredients.
+* Allergens.
+* Dietary labels.
+* Availability status.
+* Featured status.
+* Average rating.
+* Review count.
+
+Example dietary labels may include:
+
+* Vegetarian.
+* Vegan.
+* Gluten-free.
+* Contains nuts.
+
+Do not make medical claims regarding allergens or dietary suitability.
+
+---
+
+## 4. Product Details
+
+Create a dedicated page for each menu item.
+
+The page should display:
+
+* Product images.
+* Name.
+* Description.
+* Price.
+* Ingredients.
+* Allergen information.
+* Dietary labels.
+* Availability.
+* Average rating.
+* Customer reviews.
+
+Include relevant calls to action such as:
+
+* Request a bulk order.
+* Include in a catering inquiry.
+* Contact the bakery.
+
+The architecture should allow a future "Add to Cart" capability without requiring a redesign of the product model.
+
+---
+
+## 5. Ratings and Reviews
+
+Allow users to rate bakery products.
+
+Support:
+
+* 1 to 5 star ratings.
+* Optional written reviews.
+* Displaying average ratings.
+* Displaying review count.
+
+Prevent obvious abuse and duplicate submissions where practical.
+
+Design the review system so that future moderation capabilities can be added.
+
+Do not trust rating values, product IDs, or review content sent from the frontend. Validate all submitted data on the server.
+
+---
+
+## 6. Bulk Orders and Catering Requests
+
+Create a clear inquiry flow for:
+
+* Bulk bakery orders.
+* Catering.
+* Corporate events.
+* Weddings.
+* Parties.
+* Other special events.
+
+The request form should support:
+
+* Customer name.
+* Email.
+* Phone number.
+* Request type.
+* Event date.
+* Preferred pickup or delivery date and time.
+* Number of guests or expected quantity.
+* Selected products, when applicable.
+* Budget range, optionally.
+* Special requirements.
+* Additional notes.
+
+The form should:
+
+* Validate all fields on both frontend and backend.
+* Prevent selecting invalid past dates.
+* Clearly explain that submitting a request does not automatically confirm the order.
+* Show a clear success state after submission.
+* Handle failures gracefully without losing entered information.
+
+Persist inquiries in the database.
+
+Structure the implementation so that future features can include:
+
+* Inquiry statuses.
+* Internal notes.
+* Staff assignment.
+* Email notifications.
+* Customer confirmation.
+* Quotes.
+* Deposits.
+* Payments.
+
+---
+
+# Administrative Foundation
+
+Create a lightweight administrative area or structure the backend so one can be added cleanly.
+
+The system should eventually support managing:
+
+* Products.
+* Categories.
+* Prices.
+* Product availability.
+* Featured products.
+* Images.
+* Catering requests.
+* Reviews.
+* Public website content.
+
+For the initial implementation, provide an appropriate simple admin interface when practical.
+
+Do not expose administrative functionality publicly.
+
+Administrative routes and operations must be protected through proper authentication and authorization.
+
+---
+
+# Architecture Requirements
+
+Use a clean, modular project structure.
+
+Do not build the entire application as one large component, route file, or service.
+
+Organize the application by clear domains or features, such as:
+
+* Catalog.
+* Products.
+* Categories.
+* Reviews.
+* Catering.
+* Content.
+* Authentication.
+* Administration.
+
+Separate:
+
+* UI components.
+* Pages and routes.
+* Business logic.
+* Data access.
+* Validation.
+* API logic.
+* Database models.
+* Shared utilities.
+
+Prefer reusable components and abstractions only where they provide clear value. Avoid unnecessary over-engineering.
+
+Business rules should not be deeply embedded inside UI components.
+
+Create clear boundaries between the frontend, application logic, and persistence layer.
+
+Use consistent naming conventions and project organization.
+
+---
+
+# Data and Database Design
+
+Use a proper relational database.
+
+Create explicit models and migrations for the main entities.
+
+At minimum, consider:
+
+* Products.
+* Categories.
+* Product images.
+* Reviews.
+* Catering or bulk-order inquiries.
+
+Use:
+
+* Stable unique identifiers.
+* Created and updated timestamps.
+* Database constraints.
+* Foreign keys.
+* Appropriate indexes.
+* Unique constraints where required.
+
+Avoid storing important structured business information inside large unstructured JSON fields unless there is a clear reason.
+
+Provide seed data so the application looks complete when first launched.
+
+Use realistic bakery sample content rather than generic placeholder text such as "Lorem ipsum."
+
+---
+
+# API and Backend Principles
+
+All important business operations must be validated server-side.
+
+Use a consistent API structure.
+
+API responses should have:
+
+* Appropriate HTTP status codes.
+* Predictable error responses.
+* User-safe error messages.
+
+Do not expose:
+
+* Stack traces.
+* Database errors.
+* Secrets.
+* Internal implementation details.
+
+Avoid duplicating business rules across multiple endpoints.
+
+Design endpoints so future mobile applications or external integrations could consume the same backend.
+
+---
+
+# Security Requirements
+
+Apply secure defaults from the beginning.
+
+At minimum:
+
+* Never expose secrets or API keys in frontend code.
+* Store secrets in environment variables.
+* Do not commit secrets to the repository.
+* Validate and sanitize all user input.
+* Protect against SQL injection by using the framework's safe ORM or parameterized queries.
+* Protect against cross-site scripting.
+* Protect state-changing operations against CSRF where applicable.
+* Apply secure authentication practices.
+* Hash passwords using an established password-hashing mechanism.
+* Implement authorization checks on protected resources.
+* Avoid relying only on hidden frontend elements for access control.
+* Restrict administrative routes.
+* Validate uploaded files by type and size.
+* Rate-limit abuse-prone endpoints where appropriate.
+* Avoid exposing sensitive internal information through error messages.
+* Use secure cookie settings when cookies are used.
+* Follow least-privilege principles.
+
+Do not create custom cryptography or custom authentication mechanisms when established framework capabilities are available.
+
+---
+
+# UX Requirements
+
+The experience should be simple and intuitive.
+
+Prioritize the primary customer journeys:
+
+1. Discover Kanz Bakery.
+2. Browse products.
+3. Find a specific item.
+4. Understand ingredients, pricing, and allergens.
+5. Request a bulk order or catering service.
+6. Contact the bakery.
+
+Use:
+
+* Clear navigation.
+* Strong visual hierarchy.
+* Consistent spacing.
+* Readable typography.
+* Clear calls to action.
+* Proper loading states.
+* Empty states.
+* Validation messages.
+* Success states.
+* Error states.
+
+Forms must clearly explain:
+
+* Required fields.
+* Validation problems.
+* What happens after submission.
+
+Avoid excessive animations, visual clutter, and unnecessary modal dialogs.
+
+---
+
+# Mobile-First Responsive Design
+
+The application must be designed mobile-first and work well on:
+
+* Small mobile devices.
+* Large mobile devices.
+* Tablets.
+* Laptops.
+* Desktop screens.
+
+Do not simply shrink the desktop interface.
+
+Ensure that:
+
+* Navigation works naturally on mobile.
+* Buttons and controls are touch-friendly.
+* Forms are easy to complete on mobile.
+* Product cards adapt properly.
+* Images remain responsive.
+* Text remains readable.
+* No horizontal scrolling occurs.
+* Important actions remain easy to reach.
+
+---
+
+# Accessibility
+
+Follow modern accessibility principles.
+
+Include:
+
+* Semantic HTML.
+* Proper heading hierarchy.
+* Keyboard-accessible interactions.
+* Visible focus states.
+* Accessible form labels.
+* Appropriate ARIA attributes only where necessary.
+* Sufficient text contrast.
+* Descriptive image alternative text.
+* Accessible error messaging.
+
+Do not use color alone to communicate important information.
+
+---
+
+# Performance
+
+Optimize the application for good performance.
+
+Apply:
+
+* Responsive image sizes.
+* Image compression.
+* Lazy loading where appropriate.
+* Code splitting where supported.
+* Efficient database queries.
+* Pagination or controlled loading for potentially large datasets.
+* Avoid unnecessary frontend dependencies.
+* Avoid loading oversized images for thumbnails.
+* Avoid unnecessary repeated API calls.
+
+The home page and menu should feel fast on mobile networks.
+
+---
+
+# SEO and Discoverability
+
+Implement a solid SEO foundation.
+
+Include:
+
+* Semantic page structure.
+* Unique page titles.
+* Meta descriptions.
+* Open Graph metadata.
+* Clean URLs.
+* Product-specific URLs.
+* Meaningful heading structures.
+* Sitemap support where appropriate.
+* Robots configuration.
+* Structured metadata where practical.
+
+The architecture should allow adding local-business and product structured data later.
+
+---
+
+# Visual Direction
+
+Create a distinctive identity for **Kanz Bakery**.
+
+The design should feel:
+
+* Warm.
+* Premium.
+* Contemporary.
+* Artisanal.
+* Inviting.
+* Trustworthy.
+
+Avoid making the website look like a generic SaaS dashboard.
+
+Use a coherent bakery-inspired visual system with:
+
+* Strong typography.
+* High-quality product imagery.
+* Generous whitespace.
+* Consistent cards and surfaces.
+* Subtle interactions.
+* A restrained color palette.
+
+The interface should prioritize the bakery products and photography.
+
+---
+
+# Content and Localization
+
+Keep user-facing text separate from business logic where practical.
+
+Do not scatter important content throughout components in a way that makes future editing difficult.
+
+Structure the application so that future multilingual support can be introduced, including:
+
+* English.
+* Arabic.
+* Right-to-left layouts.
+
+Full localization does not need to be implemented initially unless practical, but the architecture should not make it unnecessarily difficult later.
+
+---
+
+# Extensibility
+
+Design the application so the following features can be introduced later without rewriting the core system:
+
+* Customer accounts.
+* Shopping cart.
+* Online checkout.
+* Online payments.
+* Delivery.
+* Pickup scheduling.
+* Order tracking.
+* Discount codes.
+* Loyalty program.
+* Gift cards.
+* Product variants and sizes.
+* Custom cake configuration.
+* Inventory management.
+* Branch locations.
+* Multi-branch availability.
+* Staff dashboard.
+* Email and SMS notifications.
+* Analytics.
+* CRM integrations.
+* Mobile applications.
+
+Do not implement all of these now. Build the initial system with clear extension points.
+
+---
+
+# Code Quality
+
+The generated code should:
+
+* Be readable.
+* Be consistently formatted.
+* Avoid excessive duplication.
+* Use descriptive names.
+* Keep functions and components focused.
+* Avoid large monolithic files.
+* Remove unused code.
+* Avoid placeholder TODOs for critical functionality.
+* Include comments only when they explain non-obvious decisions.
+* Follow the conventions of the chosen framework.
+
+Add automated tests for the most important business flows where practical, especially:
+
+* Form validation.
+* Catering request submission.
+* Rating validation.
+* Authorization for protected operations.
+
+---
+
+# Configuration and Environments
+
+Use environment-based configuration.
+
+Provide:
+
+* `.env.example`
+* Clear startup instructions.
+* Database migration instructions.
+* Seed instructions.
+
+Never place real secrets inside sample environment files.
+
+The application should fail clearly when required configuration is missing.
+
+---
+
+# Expected Deliverable
+
+Produce a working, coherent application rather than disconnected demo pages.
+
+Before completing the implementation:
+
+1. Review the full user journey.
+2. Verify navigation and links.
+3. Verify mobile responsiveness.
+4. Verify form validation.
+5. Verify error and loading states.
+6. Verify that protected functionality is actually protected.
+7. Verify database relationships and constraints.
+8. Remove unused code and temporary placeholders.
+9. Ensure the application can be run from a clean environment using the documented setup process.
+
+Also include a concise `README` explaining:
+
+* Technology stack.
+* Project structure.
+* Local setup.
+* Environment variables.
+* Database setup.
+* Main architectural decisions.
+* Current limitations.
+* Recommended next development steps.
+
+When making implementation decisions, prefer **stable, widely adopted technologies and framework conventions** over unnecessarily complex or experimental solutions.
+
+The final result should feel like the **first production-quality version of an extensible bakery platform**, not merely a static bakery website.

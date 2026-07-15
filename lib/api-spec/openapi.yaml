@@ -3,13 +3,24 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Kanz Bakery API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: categories
+    description: Product categories
+  - name: products
+    description: Bakery products catalog
+  - name: reviews
+    description: Product ratings and reviews
+  - name: catering
+    description: Bulk orders and catering inquiries
+  - name: catalog
+    description: Catalog-level queries (featured, stats, search)
+
 paths:
   /healthz:
     get:
@@ -24,6 +35,339 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Categories ──────────────────────────────────────────────────────────────
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all product categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /categories/{id}:
+    get:
+      operationId: getCategory
+      tags: [categories]
+      summary: Get a category by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Category found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Products ─────────────────────────────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products with optional filtering
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: featured
+          in: query
+          schema:
+            type: boolean
+        - name: available
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated list of products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /products/slug/{slug}:
+    get:
+      operationId: getProductBySlug
+      tags: [products]
+      summary: Get a product by slug (clean URL)
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Reviews ──────────────────────────────────────────────────────────────────
+  /reviews:
+    get:
+      operationId: listReviews
+      tags: [reviews]
+      summary: List reviews, filtered by productId
+      parameters:
+        - name: productId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewListResponse"
+    post:
+      operationId: createReview
+      tags: [reviews]
+      summary: Submit a product review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Catering / Bulk Orders ───────────────────────────────────────────────────
+  /catering-inquiries:
+    get:
+      operationId: listCateringInquiries
+      tags: [catering]
+      summary: List all catering inquiries (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of catering inquiries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CateringInquiryListResponse"
+    post:
+      operationId: createCateringInquiry
+      tags: [catering]
+      summary: Submit a catering or bulk order inquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CateringInquiryInput"
+      responses:
+        "201":
+          description: Inquiry submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CateringInquiry"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /catering-inquiries/{id}:
+    get:
+      operationId: getCateringInquiry
+      tags: [catering]
+      summary: Get a catering inquiry by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Inquiry found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CateringInquiry"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Catalog / "Wow" endpoints ────────────────────────────────────────────────
+  /catalog/featured:
+    get:
+      operationId: getFeaturedProducts
+      tags: [catalog]
+      summary: Get featured/best-seller products for the homepage
+      responses:
+        "200":
+          description: Featured products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /catalog/stats:
+    get:
+      operationId: getCatalogStats
+      tags: [catalog]
+      summary: Summary counts for the catalog (total products, categories, reviews)
+      responses:
+        "200":
+          description: Catalog statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogStats"
+
+  /catalog/top-rated:
+    get:
+      operationId: getTopRatedProducts
+      tags: [catalog]
+      summary: Get top-rated products
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Top rated products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
+  /catalog/search:
+    get:
+      operationId: searchProducts
+      tags: [catalog]
+      summary: Full-text search across products
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +378,267 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    # ── Category ────────────────────────────────────────────────────────────────
+    Category:
+      type: object
+      required: [id, name, slug, productCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        sortOrder:
+          type: integer
+        productCount:
+          type: integer
+
+    # ── Product (list card) ──────────────────────────────────────────────────────
+    Product:
+      type: object
+      required: [id, name, slug, price, categoryId, categoryName, available, featured, averageRating, reviewCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        shortDescription:
+          type: ["string", "null"]
+        price:
+          type: number
+        imageUrl:
+          type: ["string", "null"]
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        available:
+          type: boolean
+        featured:
+          type: boolean
+        dietaryLabels:
+          type: array
+          items:
+            type: string
+        averageRating:
+          type: number
+        reviewCount:
+          type: integer
+
+    # ── Product Detail (single page) ─────────────────────────────────────────────
+    ProductDetail:
+      type: object
+      required: [id, name, slug, price, categoryId, categoryName, available, featured, averageRating, reviewCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: ["string", "null"]
+        shortDescription:
+          type: ["string", "null"]
+        price:
+          type: number
+        images:
+          type: array
+          items:
+            type: string
+        imageUrl:
+          type: ["string", "null"]
+        categoryId:
+          type: integer
+        categoryName:
+          type: string
+        ingredients:
+          type: ["string", "null"]
+        allergens:
+          type: array
+          items:
+            type: string
+        dietaryLabels:
+          type: array
+          items:
+            type: string
+        available:
+          type: boolean
+        featured:
+          type: boolean
+        averageRating:
+          type: number
+        reviewCount:
+          type: integer
+
+    ProductListResponse:
+      type: object
+      required: [items, total, page, limit]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    # ── Review ───────────────────────────────────────────────────────────────────
+    Review:
+      type: object
+      required: [id, productId, rating, createdAt]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        reviewerName:
+          type: ["string", "null"]
+        rating:
+          type: integer
+        comment:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    ReviewInput:
+      type: object
+      required: [productId, rating]
+      properties:
+        productId:
+          type: integer
+        reviewerName:
+          type: string
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        comment:
+          type: string
+
+    ReviewListResponse:
+      type: object
+      required: [items, total, page, limit]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    # ── Catering Inquiry ──────────────────────────────────────────────────────────
+    CateringInquiry:
+      type: object
+      required: [id, customerName, email, requestType, status, createdAt]
+      properties:
+        id:
+          type: integer
+        customerName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        requestType:
+          type: string
+        eventDate:
+          type: ["string", "null"]
+        preferredDateTime:
+          type: ["string", "null"]
+        guestCount:
+          type: ["integer", "null"]
+        budgetRange:
+          type: ["string", "null"]
+        selectedProducts:
+          type: ["string", "null"]
+        specialRequirements:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        status:
+          type: string
+        createdAt:
+          type: string
+
+    CateringInquiryInput:
+      type: object
+      required: [customerName, email, requestType]
+      properties:
+        customerName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          minLength: 1
+        phone:
+          type: string
+        requestType:
+          type: string
+          minLength: 1
+        eventDate:
+          type: string
+        preferredDateTime:
+          type: string
+        guestCount:
+          type: integer
+          minimum: 1
+        budgetRange:
+          type: string
+        selectedProducts:
+          type: string
+        specialRequirements:
+          type: string
+        notes:
+          type: string
+
+    CateringInquiryListResponse:
+      type: object
+      required: [items, total, page, limit]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CateringInquiry"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    # ── Catalog Stats ────────────────────────────────────────────────────────────
+    CatalogStats:
+      type: object
+      required: [totalProducts, totalCategories, totalReviews, averageRating]
+      properties:
+        totalProducts:
+          type: integer
+        totalCategories:
+          type: integer
+        totalReviews:
+          type: integer
+        averageRating:
+          type: number
