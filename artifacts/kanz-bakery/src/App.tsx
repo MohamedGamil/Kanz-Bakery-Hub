@@ -19,6 +19,7 @@ import FindUs from '@/pages/find-us';
 import CartPage from '@/pages/cart';
 import CheckoutPage from '@/pages/checkout';
 import OrderConfirmationPage from '@/pages/order-confirmation';
+import MyOrdersPage from '@/pages/my-orders';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,6 +58,7 @@ function Router() {
           <Route path="/cart" component={CartPage} />
           <Route path="/checkout" component={CheckoutPage} />
           <Route path="/order-confirmation" component={OrderConfirmationPage} />
+          <Route path="/my-orders" component={MyOrdersPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

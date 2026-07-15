@@ -202,4 +202,32 @@ router.post("/stripe/orders/:id/verify", async (req, res): Promise<void> => {
   });
 });
 
+// Get all orders for a given email address
+router.get("/stripe/orders", async (req, res): Promise<void> => {
+  const email = (req.query.email as string | undefined)?.trim().toLowerCase();
+  if (!email) {
+    res.status(400).json({ error: "email query parameter is required" });
+    return;
+  }
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRe.test(email)) {
+    res.status(400).json({ error: "Invalid email address" });
+    return;
+  }
+
+  const orders = await db
+    .select()
+    .from(ordersTable)
+    .where(eq(ordersTable.email, email))
+    .orderBy(ordersTable.createdAt);
+
+  res.json(
+    orders.map((o) => ({
+      ...o,
+      createdAt: o.createdAt.toISOString(),
+      updatedAt: o.updatedAt.toISOString(),
+    }))
+  );
+});
+
 export default router;

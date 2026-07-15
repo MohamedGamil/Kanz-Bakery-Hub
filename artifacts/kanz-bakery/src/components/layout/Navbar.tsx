@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Menu, X, ShoppingBag } from "lucide-react";
+import { Menu, X, ShoppingBag, ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
@@ -105,6 +105,14 @@ export function Navbar() {
             <LanguageSwitcher />
 
             <Link
+              href="/my-orders"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent transition-colors"
+              aria-label={t("nav.myOrders")}
+            >
+              <ClipboardList className="w-5 h-5 text-foreground" />
+            </Link>
+
+            <Link
               href="/cart"
               className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent transition-colors"
               aria-label={`${t("nav.cart")}${count > 0 ? ` (${count})` : ""}`}
@@ -128,6 +136,14 @@ export function Navbar() {
           {/* Mobile: language + cart + hamburger */}
           <div className="flex items-center gap-1.5 lg:hidden">
             <LanguageSwitcher />
+
+            <Link
+              href="/my-orders"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent transition-colors"
+              aria-label={t("nav.myOrders")}
+            >
+              <ClipboardList className="w-5 h-5 text-foreground" />
+            </Link>
 
             <Link
               href="/cart"
@@ -173,6 +189,19 @@ export function Navbar() {
                 {t(`nav.${link.key}`)}
               </Link>
             ))}
+            <Link
+              href="/my-orders"
+              onClick={() => setIsOpen(false)}
+              className={cn(
+                "block px-3 py-3 rounded-md text-base font-medium min-h-[44px] flex items-center gap-2",
+                location === "/my-orders"
+                  ? "bg-primary/10 text-primary"
+                  : "text-foreground hover:bg-accent hover:text-primary"
+              )}
+            >
+              <ClipboardList className="w-4 h-4" />
+              {t("nav.myOrders")}
+            </Link>
             <div className="pt-3 pb-1 px-1">
               <Link
                 href="/menu"

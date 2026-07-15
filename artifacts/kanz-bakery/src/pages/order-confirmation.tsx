@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearch } from "wouter";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, Package, ArrowRight, Home } from "lucide-react";
+import { CheckCircle2, Package, ArrowRight, Home, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
 
@@ -179,6 +179,11 @@ export default function OrderConfirmationPage() {
         <Button asChild variant="outline" className="gap-2">
           <Link href="/menu">
             {t("orderConfirmation.orderMore")} <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" className="gap-2">
+          <Link href="/my-orders">
+            <ClipboardList className="w-4 h-4" /> {t("orderConfirmation.viewHistory")}
           </Link>
         </Button>
         <Button asChild className="gap-2">
