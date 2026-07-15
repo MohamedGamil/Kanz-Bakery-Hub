@@ -1,0 +1,1 @@
+- [Stripe setup pattern](stripe-setup.md) — credentials come from env secrets (not connectors proxy); first boot may fail until migrations complete, restart fixes it.
