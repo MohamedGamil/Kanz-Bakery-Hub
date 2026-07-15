@@ -199,11 +199,11 @@ export default function ProductDetail() {
               
               <div className="flex items-center gap-4 mb-6">
                 <div className="text-2xl font-semibold text-primary">
-                  ${product.price.toFixed(2)}
+                  ${Number(product.price).toFixed(2)}
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1 bg-accent rounded-full text-sm">
                   <StarRating rating={product.averageRating || 0} />
-                  <span className="font-medium">{product.averageRating?.toFixed(1) || "New"}</span>
+                  <span className="font-medium">{product.averageRating ? Number(product.averageRating).toFixed(1) : "New"}</span>
                   <span className="text-muted-foreground">({product.reviewCount || 0} reviews)</span>
                 </div>
               </div>
@@ -258,7 +258,7 @@ export default function ProductDetail() {
                   className="flex-1 h-12 text-base shadow-sm gap-2"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  Add to Cart — ${(product.price * quantity).toFixed(2)}
+                  Add to Cart — ${(Number(product.price) * quantity).toFixed(2)}
                 </Button>
               </div>
             </div>
@@ -298,7 +298,7 @@ export default function ProductDetail() {
               <h2 className="text-3xl font-serif font-bold mb-2">Customer Reviews</h2>
               <div className="flex items-center gap-2">
                 <StarRating rating={product.averageRating || 0} size="md" />
-                <span className="font-medium text-lg">{product.averageRating?.toFixed(1) || 0} out of 5</span>
+                <span className="font-medium text-lg">{product.averageRating ? Number(product.averageRating).toFixed(1) : 0} out of 5</span>
                 <span className="text-muted-foreground">({product.reviewCount || 0} reviews)</span>
               </div>
             </div>

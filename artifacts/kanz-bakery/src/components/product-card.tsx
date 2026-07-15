@@ -48,7 +48,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <h3 className="font-serif font-bold text-lg leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">
               {product.name}
             </h3>
-            <span className="font-semibold text-primary shrink-0">${product.price.toFixed(2)}</span>
+            <span className="font-semibold text-primary shrink-0">${Number(product.price).toFixed(2)}</span>
           </div>
           
           {product.shortDescription && (

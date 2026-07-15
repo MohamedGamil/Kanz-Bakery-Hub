@@ -69,7 +69,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center justify-center">
               <span className="text-4xl font-serif font-bold text-primary mb-2 flex items-center gap-1">
-                {stats?.averageRating?.toFixed(1) || "4.9"} <Star className="h-6 w-6 fill-primary" />
+                {stats?.averageRating ? Number(stats.averageRating).toFixed(1) : "4.9"} <Star className="h-6 w-6 fill-primary" />
               </span>
               <span className="text-sm text-muted-foreground uppercase tracking-wider">Average Rating</span>
             </div>
