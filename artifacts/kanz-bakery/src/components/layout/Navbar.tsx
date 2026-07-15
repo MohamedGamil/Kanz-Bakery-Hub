@@ -2,10 +2,13 @@ import { Link, useLocation } from "wouter";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useCartStore, cartItemCount } from "@/store/cart";
 
 export function Navbar() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const items = useCartStore((s) => s.items);
+  const count = cartItemCount(items);
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -25,7 +28,7 @@ export function Navbar() {
               <span className="font-serif text-2xl tracking-tight text-foreground">Bakery</span>
             </Link>
           </div>
-          
+
           <nav className="hidden md:flex space-x-8">
             {navLinks.map((link) => (
               <Link
@@ -41,18 +44,48 @@ export function Navbar() {
             ))}
           </nav>
 
-          <div className="hidden md:flex items-center space-x-4">
-            <Link href="/menu" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2">
+          <div className="hidden md:flex items-center space-x-3">
+            {/* Cart icon */}
+            <Link
+              href="/cart"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent transition-colors"
+              aria-label={`Shopping bag${count > 0 ? `, ${count} items` : ""}`}
+            >
+              <ShoppingBag className="w-5 h-5 text-foreground" />
+              {count > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {count > 99 ? "99+" : count}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              href="/menu"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2"
+            >
               Order Now
             </Link>
           </div>
 
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            {/* Mobile cart icon */}
+            <Link
+              href="/cart"
+              className="relative inline-flex items-center justify-center w-10 h-10 rounded-full hover:bg-accent transition-colors"
+              aria-label={`Shopping bag${count > 0 ? `, ${count} items` : ""}`}
+            >
+              <ShoppingBag className="w-5 h-5 text-foreground" />
+              {count > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {count > 99 ? "99+" : count}
+                </span>
+              )}
+            </Link>
+
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-md text-foreground hover:text-primary hover:bg-accent focus:outline-none focus:bg-accent focus:text-primary transition duration-150 ease-in-out"
               aria-label="Main menu"
-              aria-expanded="false"
             >
               {isOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
             </button>
@@ -71,8 +104,8 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
                 className={cn(
                   "block px-3 py-2 rounded-md text-base font-medium",
-                  location === link.href 
-                    ? "bg-primary/10 text-primary" 
+                  location === link.href
+                    ? "bg-primary/10 text-primary"
                     : "text-foreground hover:bg-accent hover:text-primary"
                 )}
               >

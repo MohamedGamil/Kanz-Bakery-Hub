@@ -5,6 +5,7 @@ import productsRouter from "./products";
 import reviewsRouter from "./reviews";
 import cateringRouter from "./catering";
 import catalogRouter from "./catalog";
+import stripeRouter from "./stripe";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(productsRouter);
 router.use(reviewsRouter);
 router.use(cateringRouter);
 router.use(catalogRouter);
+router.use(stripeRouter);
 
 export default router;

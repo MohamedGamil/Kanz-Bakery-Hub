@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useCartStore } from "@/store/cart";
+import { useLocation } from "wouter";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +37,8 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const addItem = useCartStore((s) => s.addItem);
+  const [, navigate] = useLocation();
   const [isReviewOpen, setIsReviewOpen] = useState(false);
 
   const { data: product, isLoading: productLoading, error: productError } = useGetProductBySlug(slug || "");
@@ -79,11 +83,24 @@ export default function ProductDetail() {
   const handleIncrease = () => setQuantity(q => q + 1);
 
   const handleAddToCart = () => {
+    if (!product) return;
+    addItem(
+      {
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: Number(product.price),
+        imageUrl: product.imageUrl,
+        categoryName: product.categoryName ?? undefined,
+      },
+      quantity,
+    );
     toast({
-      title: "Added to cart",
-      description: `${quantity}x ${product?.name} has been added to your bag.`,
+      title: "Added to bag",
+      description: `${quantity}× ${product.name} added. View your bag to checkout.`,
       duration: 3000,
     });
+    navigate("/cart");
   };
 
   const onSubmitReview = (data: ReviewFormValues) => {

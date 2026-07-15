@@ -13,6 +13,9 @@ import ProductDetail from '@/pages/product-detail';
 import Catering from '@/pages/catering';
 import About from '@/pages/about';
 import Contact from '@/pages/contact';
+import CartPage from '@/pages/cart';
+import CheckoutPage from '@/pages/checkout';
+import OrderConfirmationPage from '@/pages/order-confirmation';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,6 +38,9 @@ function Router() {
           <Route path="/catering" component={Catering} />
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
+          <Route path="/cart" component={CartPage} />
+          <Route path="/checkout" component={CheckoutPage} />
+          <Route path="/order-confirmation" component={OrderConfirmationPage} />
           <Route component={NotFound} />
         </Switch>
       </main>
