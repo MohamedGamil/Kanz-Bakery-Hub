@@ -5,8 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
 import { ArrowLeft, CheckCircle2, ChevronRight, Info, Minus, Plus, ShoppingBag } from "lucide-react";
-import { 
-  useGetProductBySlug, 
+import { useTranslation } from "react-i18next";
+import {
+  useGetProductBySlug,
   useListReviews,
   useCreateReview
 } from "@workspace/api-client-react";
@@ -40,14 +41,20 @@ export default function ProductDetail() {
   const addItem = useCartStore((s) => s.addItem);
   const [, navigate] = useLocation();
   const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const { t } = useTranslation();
 
   const { data: product, isLoading: productLoading, error: productError } = useGetProductBySlug(slug || "");
-  
+
   const productId = product?.id;
-  
+
   const { data: reviewsData, isLoading: reviewsLoading } = useListReviews(
     { productId: productId as number, limit: 10 },
-    { query: { enabled: !!productId } }
+    {
+      query: {
+        enabled: !!productId,
+        queryKey: getListReviewsQueryKey({ productId: productId as number, limit: 10 }),
+      },
+    }
   );
 
   const createReviewMutation = useCreateReview();
@@ -70,10 +77,10 @@ export default function ProductDetail() {
   if (productError) {
     return (
       <div className="container mx-auto px-4 py-24 text-center">
-        <h2 className="text-2xl font-serif font-bold text-destructive mb-4">Product Not Found</h2>
-        <p className="text-muted-foreground mb-8">The product you're looking for doesn't exist or has been removed.</p>
+        <h2 className="text-2xl font-serif font-bold text-destructive mb-4">{t("productDetail.notFound")}</h2>
+        <p className="text-muted-foreground mb-8">{t("productDetail.notFoundDesc")}</p>
         <Link href="/menu">
-          <Button>Return to Menu</Button>
+          <Button>{t("productDetail.returnToMenu")}</Button>
         </Link>
       </div>
     );
@@ -96,8 +103,8 @@ export default function ProductDetail() {
       quantity,
     );
     toast({
-      title: "Added to bag",
-      description: `${quantity}× ${product.name} added. View your bag to checkout.`,
+      title: t("productDetail.addedToBag"),
+      description: t("productDetail.addedToBagDesc", { count: quantity, name: product.name }),
       duration: 3000,
     });
     navigate("/cart");
@@ -105,7 +112,7 @@ export default function ProductDetail() {
 
   const onSubmitReview = (data: ReviewFormValues) => {
     if (!productId) return;
-    
+
     createReviewMutation.mutate({
       data: {
         productId,
@@ -116,19 +123,21 @@ export default function ProductDetail() {
     }, {
       onSuccess: () => {
         toast({
-          title: "Review submitted",
-          description: "Thank you for your feedback!",
+          title: t("productDetail.reviewSubmitted"),
+          description: t("productDetail.reviewThanks"),
         });
         setIsReviewOpen(false);
         form.reset();
-        // Invalidate reviews to refetch
         queryClient.invalidateQueries({ queryKey: getListReviewsQueryKey({ productId }) });
         queryClient.invalidateQueries({ queryKey: getGetProductBySlugQueryKey(slug as string) });
       },
-      onError: (error) => {
+      onError: (error: unknown) => {
+        const msg = error && typeof error === "object" && "error" in error
+          ? String((error as { error: string }).error)
+          : t("productDetail.reviewError");
         toast({
-          title: "Failed to submit review",
-          description: error.error || "An unexpected error occurred.",
+          title: t("productDetail.reviewFailed"),
+          description: msg,
           variant: "destructive",
         });
       }
@@ -162,13 +171,13 @@ export default function ProductDetail() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex items-center text-sm text-muted-foreground">
             <Link href="/menu" className="hover:text-primary transition-colors flex items-center gap-1">
-              <ArrowLeft className="w-3 h-3" /> Back to Menu
+              <ArrowLeft className="w-3 h-3 rtl:rotate-180" /> {t("productDetail.backToMenu")}
             </Link>
-            <ChevronRight className="w-4 h-4 mx-2 text-border" />
+            <ChevronRight className="w-4 h-4 mx-2 text-border rtl:rotate-180" />
             <Link href={`/menu?category=${product.categoryId}`} className="hover:text-primary transition-colors">
               {product.categoryName}
             </Link>
-            <ChevronRight className="w-4 h-4 mx-2 text-border" />
+            <ChevronRight className="w-4 h-4 mx-2 text-border rtl:rotate-180" />
             <span className="text-foreground font-medium truncate">{product.name}</span>
           </nav>
         </div>
@@ -176,14 +185,14 @@ export default function ProductDetail() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-          
+
           {/* Product Images */}
           <div className="space-y-4">
             <div className="aspect-square rounded-lg overflow-hidden bg-muted border border-border shadow-sm">
               {product.imageUrl ? (
-                <img 
-                  src={product.imageUrl} 
-                  alt={product.name} 
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -192,12 +201,12 @@ export default function ProductDetail() {
                 </div>
               )}
             </div>
-            
+
             {product.images && product.images.length > 0 && (
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((img, i) => (
                   <button key={i} className="aspect-square rounded-md overflow-hidden bg-muted border border-border/50 hover:border-primary transition-colors">
-                    <img src={img} alt={`${product.name} detail ${i+1}`} className="w-full h-full object-cover" />
+                    <img src={img} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -213,26 +222,30 @@ export default function ProductDetail() {
               <h1 className="text-4xl md:text-5xl font-serif font-bold text-foreground mb-4">
                 {product.name}
               </h1>
-              
-              <div className="flex items-center gap-4 mb-6">
+
+              <div className="flex items-center gap-4 mb-6 flex-wrap">
                 <div className="text-2xl font-semibold text-primary">
                   ${Number(product.price).toFixed(2)}
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1 bg-accent rounded-full text-sm">
                   <StarRating rating={product.averageRating || 0} />
-                  <span className="font-medium">{product.averageRating ? Number(product.averageRating).toFixed(1) : "New"}</span>
-                  <span className="text-muted-foreground">({product.reviewCount || 0} reviews)</span>
+                  <span className="font-medium">
+                    {product.averageRating ? Number(product.averageRating).toFixed(1) : t("productDetail.newLabel")}
+                  </span>
+                  <span className="text-muted-foreground">
+                    ({product.reviewCount || 0} {t("productDetail.reviews")})
+                  </span>
                 </div>
               </div>
             </div>
 
             <p className="text-lg text-foreground/80 font-light leading-relaxed mb-8">
-              {product.description || product.shortDescription || "A delicious artisanal creation from our bakery."}
+              {product.description || product.shortDescription || t("productDetail.defaultDesc")}
             </p>
 
             {product.dietaryLabels && product.dietaryLabels.length > 0 && (
               <div className="mb-8 space-y-3">
-                <h3 className="font-serif font-medium text-lg">Dietary Preferences</h3>
+                <h3 className="font-serif font-medium text-lg">{t("productDetail.dietaryPreferences")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.dietaryLabels.map(label => (
                     <DietaryBadge key={label} label={label} />
@@ -243,64 +256,71 @@ export default function ProductDetail() {
 
             <div className="bg-card border border-border rounded-lg p-6 mb-8 shadow-sm">
               <div className="flex items-center gap-4 mb-4">
-                <span className={product.available ? "text-green-600 dark:text-green-400 font-medium flex items-center gap-1" : "text-destructive font-medium"}>
-                  {product.available ? <><CheckCircle2 className="w-4 h-4" /> Available today</> : "Sold out"}
+                <span className={product.available
+                  ? "text-green-600 dark:text-green-400 font-medium flex items-center gap-1"
+                  : "text-destructive font-medium"
+                }>
+                  {product.available
+                    ? <><CheckCircle2 className="w-4 h-4" /> {t("productDetail.availableToday")}</>
+                    : t("productDetail.soldOut")}
                 </span>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex items-center border border-input rounded-md h-12">
-                  <button 
+                  <button
                     onClick={handleDecrease}
                     disabled={!product.available}
-                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 transition-colors"
+                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 transition-colors rounded-s-md"
+                    aria-label={t("cart.decreaseQty")}
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <div className="w-12 h-full flex items-center justify-center font-medium text-foreground border-x border-input">
                     {quantity}
                   </div>
-                  <button 
+                  <button
                     onClick={handleIncrease}
                     disabled={!product.available}
-                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 transition-colors"
+                    className="w-12 h-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent disabled:opacity-50 transition-colors rounded-e-md"
+                    aria-label={t("cart.increaseQty")}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-                
-                <Button 
+
+                <Button
                   onClick={handleAddToCart}
                   disabled={!product.available}
                   className="flex-1 h-12 text-base shadow-sm gap-2"
                 >
                   <ShoppingBag className="w-4 h-4" />
-                  Add to Cart — ${(Number(product.price) * quantity).toFixed(2)}
+                  {t("productDetail.addToCart")} — ${(Number(product.price) * quantity).toFixed(2)}
                 </Button>
               </div>
             </div>
 
-            {/* Ingredients & Allergens Accordion/Section */}
+            {/* Ingredients & Allergens */}
             <div className="space-y-6 pt-6 border-t border-border">
               {product.ingredients && (
                 <div>
-                  <h3 className="font-serif font-medium text-lg mb-2">Ingredients</h3>
+                  <h3 className="font-serif font-medium text-lg mb-2">{t("productDetail.ingredients")}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {product.ingredients}
                   </p>
                 </div>
               )}
-              
+
               {product.allergens && product.allergens.length > 0 && (
                 <div>
                   <h3 className="font-serif font-medium text-lg flex items-center gap-2 mb-2 text-destructive">
-                    <Info className="w-4 h-4" /> Allergens Info
+                    <Info className="w-4 h-4" /> {t("productDetail.allergensInfo")}
                   </h3>
                   <p className="text-sm font-medium text-foreground">
-                    Contains: {product.allergens.join(", ")}
+                    {t("productDetail.contains")}: {product.allergens.join(", ")}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Baked in a facility that handles nuts, dairy, eggs, and gluten.
+                    {t("productDetail.facilityNote")}
                   </p>
                 </div>
               )}
@@ -312,21 +332,28 @@ export default function ProductDetail() {
         <div className="mt-24 pt-12 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
             <div>
-              <h2 className="text-3xl font-serif font-bold mb-2">Customer Reviews</h2>
-              <div className="flex items-center gap-2">
+              <h2 className="text-3xl font-serif font-bold mb-2">{t("productDetail.customerReviews")}</h2>
+              <div className="flex items-center gap-2 flex-wrap">
                 <StarRating rating={product.averageRating || 0} size="md" />
-                <span className="font-medium text-lg">{product.averageRating ? Number(product.averageRating).toFixed(1) : 0} out of 5</span>
-                <span className="text-muted-foreground">({product.reviewCount || 0} reviews)</span>
+                <span className="font-medium text-lg">
+                  {product.averageRating ? Number(product.averageRating).toFixed(1) : 0} {t("productDetail.outOf5")}
+                </span>
+                <span className="text-muted-foreground">
+                  ({product.reviewCount || 0} {t("productDetail.reviews")})
+                </span>
               </div>
             </div>
-            <Button onClick={() => setIsReviewOpen(!isReviewOpen)} variant={isReviewOpen ? "outline" : "default"}>
-              {isReviewOpen ? "Cancel" : "Write a Review"}
+            <Button
+              onClick={() => setIsReviewOpen(!isReviewOpen)}
+              variant={isReviewOpen ? "outline" : "default"}
+            >
+              {isReviewOpen ? t("productDetail.cancelReview") : t("productDetail.writeReview")}
             </Button>
           </div>
 
           {isReviewOpen && (
             <div className="bg-card border border-border p-6 md:p-8 rounded-lg mb-12 animate-in fade-in slide-in-from-top-4">
-              <h3 className="text-xl font-serif font-bold mb-6">Share your thoughts</h3>
+              <h3 className="text-xl font-serif font-bold mb-6">{t("productDetail.shareThoughts")}</h3>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmitReview)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -335,26 +362,26 @@ export default function ProductDetail() {
                       name="reviewerName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Name (Optional)</FormLabel>
+                          <FormLabel>{t("productDetail.yourName")}</FormLabel>
                           <FormControl>
-                            <Input placeholder="How should we call you?" {...field} />
+                            <Input placeholder={t("productDetail.namePlaceholder")} {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={form.control}
                       name="rating"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Rating *</FormLabel>
+                          <FormLabel>{t("productDetail.yourRating")}</FormLabel>
                           <FormControl>
                             <div className="py-2">
-                              <StarRating 
-                                rating={field.value} 
-                                interactive 
+                              <StarRating
+                                rating={field.value}
+                                interactive
                                 onRatingChange={field.onChange}
                                 size="lg"
                               />
@@ -371,12 +398,12 @@ export default function ProductDetail() {
                     name="comment"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Review (Optional)</FormLabel>
+                        <FormLabel>{t("productDetail.yourReview")}</FormLabel>
                         <FormControl>
-                          <Textarea 
-                            placeholder="What did you think about this product?" 
+                          <Textarea
+                            placeholder={t("productDetail.reviewPlaceholder")}
                             className="min-h-[100px]"
-                            {...field} 
+                            {...field}
                           />
                         </FormControl>
                         <FormMessage />
@@ -385,11 +412,10 @@ export default function ProductDetail() {
                   />
 
                   <div className="flex justify-end">
-                    <Button 
-                      type="submit" 
-                      disabled={createReviewMutation.isPending}
-                    >
-                      {createReviewMutation.isPending ? "Submitting..." : "Submit Review"}
+                    <Button type="submit" disabled={createReviewMutation.isPending}>
+                      {createReviewMutation.isPending
+                        ? t("productDetail.submittingReview")
+                        : t("productDetail.submitReview")}
                     </Button>
                   </div>
                 </form>
@@ -412,7 +438,9 @@ export default function ProductDetail() {
                   <div key={review.id} className="border border-border/80 rounded-lg p-6 bg-card">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <span className="font-medium">{review.reviewerName || "Anonymous"}</span>
+                        <span className="font-medium">
+                          {review.reviewerName || t("productDetail.anonymous")}
+                        </span>
                         <div className="mt-1">
                           <StarRating rating={review.rating} />
                         </div>
@@ -424,14 +452,14 @@ export default function ProductDetail() {
                     {review.comment ? (
                       <p className="text-foreground/80 text-sm leading-relaxed">{review.comment}</p>
                     ) : (
-                      <p className="text-muted-foreground/50 text-sm italic">No comment provided.</p>
+                      <p className="text-muted-foreground/50 text-sm italic">{t("productDetail.noComment")}</p>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-12 border border-border border-dashed rounded-lg bg-card/50">
-                <p className="text-muted-foreground">Be the first to review this product!</p>
+                <p className="text-muted-foreground">{t("productDetail.beFirstReview")}</p>
               </div>
             )}
           </div>

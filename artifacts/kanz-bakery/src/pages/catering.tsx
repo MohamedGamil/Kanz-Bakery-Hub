@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,12 +9,12 @@ import { useCreateCateringInquiry } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
   FormMessage,
   FormDescription
 } from "@/components/ui/form";
@@ -51,11 +52,12 @@ type CateringFormValues = z.infer<typeof cateringSchema>;
 export default function Catering() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation();
   const createInquiryMutation = useCreateCateringInquiry();
 
   useEffect(() => {
-    document.title = "Catering & Events | Kanz Bakery";
-  }, []);
+    document.title = t("catering.pageTitle");
+  }, [t]);
 
   const form = useForm<CateringFormValues>({
     resolver: zodResolver(cateringSchema),
@@ -85,10 +87,13 @@ export default function Catering() {
         setIsSubmitted(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
-      onError: (error) => {
+      onError: (error: unknown) => {
+        const msg = error && typeof error === "object" && "error" in error
+          ? String((error as { error: string }).error)
+          : "An unexpected error occurred. Please try again.";
         toast({
           title: "Submission failed",
-          description: error.error || "An unexpected error occurred. Please try again.",
+          description: msg,
           variant: "destructive",
         });
       }
@@ -97,296 +102,218 @@ export default function Catering() {
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-background">
+      {/* Hero */}
       <div className="bg-primary text-primary-foreground py-16 md:py-24 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl text-center relative z-10">
-          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">Catering & Bulk Orders</h1>
+          <h1 className="text-4xl md:text-6xl font-serif font-bold mb-6">{t("catering.heroTitle")}</h1>
           <p className="text-lg md:text-xl text-primary-foreground/90 font-light max-w-2xl mx-auto">
-            Elevate your next event with artisanal breads, pastries, and custom cakes. From intimate gatherings to grand celebrations, we craft menus that leave a lasting impression.
+            {t("catering.heroSubtitle")}
           </p>
         </div>
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 max-w-7xl">
         {isSubmitted ? (
-          <div className="max-w-2xl mx-auto text-center bg-card border border-border p-12 rounded-xl shadow-sm">
+          <div className="max-w-2xl mx-auto text-center bg-card border border-border p-8 sm:p-12 rounded-xl shadow-sm">
             <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
-            <h2 className="text-3xl font-serif font-bold mb-4">Request Received</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              Thank you for considering Kanz Bakery for your event. We have received your inquiry and our team will review the details.
-            </p>
-            <div className="bg-secondary/50 p-6 rounded-lg text-left mb-8">
-              <h3 className="font-semibold mb-2">What happens next?</h3>
+            <h2 className="text-3xl font-serif font-bold mb-4">{t("catering.successTitle")}</h2>
+            <p className="text-lg text-muted-foreground mb-8">{t("catering.successSubtitle")}</p>
+            <div className="bg-secondary/50 p-6 rounded-lg text-start mb-8">
+              <h3 className="font-semibold mb-2">{t("catering.successNext")}</h3>
               <ul className="space-y-3 text-muted-foreground text-sm">
-                <li className="flex gap-2"><Clock className="w-5 h-5 shrink-0 text-primary" /> We typically respond within 24-48 hours.</li>
-                <li className="flex gap-2"><Phone className="w-5 h-5 shrink-0 text-primary" /> One of our event coordinators will contact you to discuss your vision.</li>
-                <li className="flex gap-2"><Users className="w-5 h-5 shrink-0 text-primary" /> We'll finalize the menu and provide a formal quote.</li>
+                <li className="flex gap-2"><Clock className="w-5 h-5 shrink-0 text-primary" />{t("catering.successStep1")}</li>
+                <li className="flex gap-2"><Phone className="w-5 h-5 shrink-0 text-primary" />{t("catering.successStep2")}</li>
+                <li className="flex gap-2"><Users className="w-5 h-5 shrink-0 text-primary" />{t("catering.successStep3")}</li>
               </ul>
             </div>
-            <p className="text-sm text-muted-foreground italic mb-8">
-              Please note: This is an inquiry only and does not automatically confirm your order or reserve your date.
-            </p>
+            <p className="text-sm text-muted-foreground italic mb-8">{t("catering.successDisclaimer")}</p>
             <Button onClick={() => setIsSubmitted(false)} variant="outline">
-              Submit Another Inquiry
+              {t("catering.sendAnother")}
             </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16">
+            {/* Sidebar */}
             <div className="lg:col-span-1 space-y-8">
               <div>
-                <h2 className="text-2xl font-serif font-bold mb-4">How it works</h2>
-                <p className="text-muted-foreground mb-6">
-                  Every event is unique. Fill out the form with as many details as you have, and we'll work with you to create the perfect artisan spread.
-                </p>
+                <h2 className="text-2xl font-serif font-bold mb-4">{t("catering.howItWorks")}</h2>
+                <p className="text-muted-foreground mb-6">{t("catering.howItWorksDesc")}</p>
                 <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="font-serif font-bold text-primary">1</span>
+                  {[
+                    { title: t("catering.step1Title"), desc: t("catering.step1Desc") },
+                    { title: t("catering.step2Title"), desc: t("catering.step2Desc") },
+                    { title: t("catering.step3Title"), desc: t("catering.step3Desc") },
+                  ].map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <span className="font-serif font-bold text-primary">{i + 1}</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold mb-1">{step.title}</h4>
+                        <p className="text-sm text-muted-foreground">{step.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-1">Submit Details</h4>
-                      <p className="text-sm text-muted-foreground">Tell us about your event, date, and general needs.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="font-serif font-bold text-primary">2</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-1">Consultation</h4>
-                      <p className="text-sm text-muted-foreground">We'll review your request and suggest the best options from our bakery.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <span className="font-serif font-bold text-primary">3</span>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-1">Proposal & Tasting</h4>
-                      <p className="text-sm text-muted-foreground">For large events, we provide a formal quote and optional tasting session.</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
               <div className="bg-secondary/30 p-6 rounded-lg border border-border">
-                <h3 className="font-serif font-bold text-lg mb-4">Need immediate help?</h3>
-                <p className="text-sm text-muted-foreground mb-4">For events happening within the next 48 hours, please call us directly.</p>
-                <a href="tel:+971501234567" className="flex items-center gap-2 text-primary font-medium hover:underline">
-                  <Phone className="w-4 h-4" /> +971 50 123 4567
+                <h3 className="font-serif font-bold text-lg mb-4">{t("catering.immediateHelp")}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{t("catering.immediateHelpDesc")}</p>
+                <a href="tel:+966112345678" className="flex items-center gap-2 text-primary font-medium hover:underline" dir="ltr">
+                  <Phone className="w-4 h-4 shrink-0" /> +966 11 234 5678
                 </a>
                 <a href="mailto:events@kanzbakery.com" className="flex items-center gap-2 text-primary font-medium hover:underline mt-2">
-                  <Mail className="w-4 h-4" /> events@kanzbakery.com
+                  <Mail className="w-4 h-4 shrink-0" /> events@kanzbakery.com
                 </a>
               </div>
             </div>
 
+            {/* Form */}
             <div className="lg:col-span-2 bg-card border border-border p-6 md:p-8 rounded-xl shadow-sm">
-              <h2 className="text-2xl font-serif font-bold mb-6">Event Inquiry Form</h2>
-              <p className="text-sm text-muted-foreground mb-8">Please fill out the details below. Fields marked with * are required.</p>
-              
+              <h2 className="text-2xl font-serif font-bold mb-2">{t("catering.formTitle")}</h2>
+              <p className="text-sm text-muted-foreground mb-8">{t("catering.formSubtitle")}</p>
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  
-                  {/* Contact Info */}
+
+                  {/* Contact */}
                   <div className="space-y-6">
-                    <h3 className="text-lg font-medium border-b border-border pb-2">Contact Information</h3>
+                    <h3 className="text-lg font-medium border-b border-border pb-2">{t("catering.contactSection")}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="customerName"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Full Name *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="John Doe" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email Address *</FormLabel>
-                            <FormControl>
-                              <Input type="email" placeholder="john@example.com" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="phone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input type="tel" placeholder="+971 50 000 0000" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <FormField control={form.control} name="customerName" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.customerName")}</FormLabel>
+                          <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="email" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.email")}</FormLabel>
+                          <FormControl><Input type="email" placeholder="john@example.com" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="phone" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.phone")}</FormLabel>
+                          <FormControl><Input type="tel" placeholder="+966 5X XXX XXXX" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
                     </div>
                   </div>
 
-                  {/* Event Details */}
+                  {/* Event details */}
                   <div className="space-y-6">
-                    <h3 className="text-lg font-medium border-b border-border pb-2">Event Details</h3>
+                    <h3 className="text-lg font-medium border-b border-border pb-2">{t("catering.eventSection")}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="requestType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Event Type *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="wedding">Wedding</SelectItem>
-                                <SelectItem value="corporate">Corporate Event</SelectItem>
-                                <SelectItem value="birthday">Birthday Party</SelectItem>
-                                <SelectItem value="bulk_order">Bulk Order (No Event)</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="guestCount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estimated Guest Count</FormLabel>
+                      <FormField control={form.control} name="requestType" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.requestType")}</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <Input type="number" min="1" placeholder="e.g. 50" {...field} />
+                              <SelectTrigger><SelectValue placeholder={t("catering.requestTypePlaceholder")} /></SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="eventDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Event Date</FormLabel>
+                            <SelectContent>
+                              <SelectItem value="wedding">{t("catering.eventTypes.wedding")}</SelectItem>
+                              <SelectItem value="corporate">{t("catering.eventTypes.corporate")}</SelectItem>
+                              <SelectItem value="birthday">{t("catering.eventTypes.birthday")}</SelectItem>
+                              <SelectItem value="bulk_order">{t("catering.eventTypes.bulk_order")}</SelectItem>
+                              <SelectItem value="other">{t("catering.eventTypes.other")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="guestCount" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.guestCount")}</FormLabel>
+                          <FormControl><Input type="number" min="1" placeholder={t("catering.guestCountPlaceholder")} {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="eventDate" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.eventDate")}</FormLabel>
+                          <FormControl><Input type="date" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="preferredDateTime" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.preferredDateTime")}</FormLabel>
+                          <FormControl><Input type="time" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="budgetRange" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t("catering.budgetRange")}</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
-                              <Input type="date" {...field} />
+                              <SelectTrigger><SelectValue placeholder={t("catering.budgetPlaceholder")} /></SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="preferredDateTime"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Preferred Delivery/Pickup Time</FormLabel>
-                            <FormControl>
-                              <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="budgetRange"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estimated Budget Range</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select budget" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="under_500">Under $500</SelectItem>
-                                <SelectItem value="500_1000">$500 - $1,000</SelectItem>
-                                <SelectItem value="1000_2500">$1,000 - $2,500</SelectItem>
-                                <SelectItem value="over_2500">$2,500+</SelectItem>
-                                <SelectItem value="not_sure">Not sure yet</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                            <SelectContent>
+                              <SelectItem value="under_500">{t("catering.budgetRanges.under_500")}</SelectItem>
+                              <SelectItem value="500_1000">{t("catering.budgetRanges.500_1000")}</SelectItem>
+                              <SelectItem value="1000_2500">{t("catering.budgetRanges.1000_2500")}</SelectItem>
+                              <SelectItem value="over_2500">{t("catering.budgetRanges.over_2500")}</SelectItem>
+                              <SelectItem value="not_sure">{t("catering.budgetRanges.not_sure")}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
                     </div>
                   </div>
 
-                  {/* Order Specifics */}
+                  {/* Order preferences */}
                   <div className="space-y-6">
-                    <h3 className="text-lg font-medium border-b border-border pb-2">Order Preferences</h3>
-                    
-                    <FormField
-                      control={form.control}
-                      name="selectedProducts"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Items of Interest</FormLabel>
-                          <FormDescription>What kinds of baked goods are you looking for? (e.g. Sourdough loaves, mixed pastries, custom cake)</FormDescription>
-                          <FormControl>
-                            <Textarea placeholder="Tell us what you'd like to order..." className="min-h-[80px]" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="specialRequirements"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Dietary / Special Requirements</FormLabel>
-                          <FormDescription>Any allergies, vegan, or gluten-free needs?</FormDescription>
-                          <FormControl>
-                            <Textarea placeholder="e.g. 5 vegan options, no nuts..." className="min-h-[80px]" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="notes"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Additional Notes</FormLabel>
-                          <FormControl>
-                            <Textarea placeholder="Any other details we should know about your event?" className="min-h-[80px]" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <h3 className="text-lg font-medium border-b border-border pb-2">{t("catering.orderSection")}</h3>
+                    <FormField control={form.control} name="selectedProducts" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("catering.selectedProducts")}</FormLabel>
+                        <FormDescription>{t("catering.selectedProductsDesc")}</FormDescription>
+                        <FormControl>
+                          <Textarea placeholder={t("catering.selectedProductsPlaceholder")} className="min-h-[80px]" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="specialRequirements" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("catering.specialRequirements")}</FormLabel>
+                        <FormDescription>{t("catering.specialRequirementsDesc")}</FormDescription>
+                        <FormControl>
+                          <Textarea placeholder={t("catering.specialRequirementsPlaceholder")} className="min-h-[80px]" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="notes" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("catering.notes")}</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder={t("catering.notesPlaceholder")} className="min-h-[80px]" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
                   </div>
 
                   <div className="flex items-center justify-end pt-6 border-t border-border">
-                    <Button 
-                      type="submit" 
-                      size="lg" 
+                    <Button
+                      type="submit"
+                      size="lg"
                       disabled={createInquiryMutation.isPending}
                       className="w-full md:w-auto px-10 text-base"
                     >
-                      {createInquiryMutation.isPending ? "Sending Inquiry..." : "Submit Inquiry"}
+                      {createInquiryMutation.isPending ? t("catering.submitting") : t("catering.submit")}
                     </Button>
                   </div>
                 </form>

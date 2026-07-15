@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300..700&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Noto+Kufi+Arabic:wght@300..700&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -131,6 +131,25 @@
   --app-font-sans: 'DM Sans', sans-serif;
   --app-font-serif: 'Playfair Display', serif;
   --app-font-mono: Menlo, monospace;
+}
+
+/* Arabic font override — applied when DirectionManager sets lang="ar" on <html> */
+html[lang="ar"] {
+  --app-font-sans: 'Noto Kufi Arabic', sans-serif;
+  --app-font-serif: 'Noto Kufi Arabic', serif;
+}
+
+/* Keep Leaflet map tiles from overlapping the sticky navbar */
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+/* Ensure Leaflet controls (zoom) stay visible inside the isolated stacking context */
+.leaflet-control-zoom {
+  z-index: 1 !important;
+}
+
+:root {
   
   --radius: 0.25rem;
   

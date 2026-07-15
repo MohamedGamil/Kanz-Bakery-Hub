@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,7 +20,6 @@ import { useCartStore, cartSubtotal } from "@/store/cart";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-// ─── Customer form schema ───────────────────────────────────────────────────
 const customerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email"),
@@ -28,34 +28,25 @@ const customerSchema = z.object({
 });
 type CustomerValues = z.infer<typeof customerSchema>;
 
-// ─── Inner payment form (rendered inside <Elements>) ─────────────────────────
-function PaymentForm({
-  orderId,
-  onBack,
-}: {
-  orderId: number;
-  onBack: () => void;
-}) {
+function PaymentForm({ orderId, onBack }: { orderId: number; onBack: () => void }) {
   const stripe = useStripe();
   const elements = useElements();
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
-
     setIsSubmitting(true);
     setPaymentError(null);
 
     const returnUrl = `${window.location.origin}${BASE}/order-confirmation?orderId=${orderId}`;
-
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: { return_url: returnUrl },
     });
 
-    // confirmPayment only returns here if there's an immediate error
     if (error) {
       setPaymentError(error.message ?? "Payment failed. Please try again.");
       setIsSubmitting(false);
@@ -64,12 +55,7 @@ function PaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <PaymentElement
-        options={{
-          layout: "tabs",
-          fields: { billingDetails: { name: "auto", email: "auto" } },
-        }}
-      />
+      <PaymentElement options={{ layout: "tabs", fields: { billingDetails: { name: "auto", email: "auto" } } }} />
 
       {paymentError && (
         <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg px-4 py-3 text-sm">
@@ -78,29 +64,18 @@ function PaymentForm({
       )}
 
       <div className="flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onBack}
-          disabled={isSubmitting}
-          className="gap-1"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back
+        <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting} className="gap-1">
+          <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("checkout.back")}
         </Button>
-        <Button
-          type="submit"
-          disabled={!stripe || isSubmitting}
-          className="flex-1 gap-2"
-          size="lg"
-        >
+        <Button type="submit" disabled={!stripe || isSubmitting} className="flex-1 gap-2" size="lg">
           {isSubmitting ? (
             <>
               <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-              Processing…
+              {t("checkout.processing")}
             </>
           ) : (
             <>
-              <Lock className="w-4 h-4" /> Place Order
+              <Lock className="w-4 h-4" /> {t("checkout.placeOrder")}
             </>
           )}
         </Button>
@@ -108,15 +83,15 @@ function PaymentForm({
 
       <p className="text-center text-xs text-muted-foreground flex items-center justify-center gap-1">
         <Lock className="w-3 h-3" />
-        Secured by Stripe. Your card details are never stored on our servers.
+        {t("checkout.secureNote")}
       </p>
     </form>
   );
 }
 
-// ─── Main checkout page ───────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
   const { items } = useCartStore();
   const subtotal = cartSubtotal(items);
 
@@ -132,27 +107,26 @@ export default function CheckoutPage() {
     defaultValues: { name: "", email: "", phone: "", notes: "" },
   });
 
-  // Redirect to cart if empty
+  useEffect(() => {
+    document.title = t("checkout.pageTitle");
+  }, [t]);
+
   useEffect(() => {
     if (items.length === 0) navigate("/cart");
   }, [items.length, navigate]);
 
-  // Load publishable key once
   useEffect(() => {
     fetch(`${BASE}/api/stripe/config`)
       .then((r) => r.json())
       .then(({ publishableKey }) => {
         if (publishableKey) setStripePromise(loadStripe(publishableKey));
       })
-      .catch(() => {
-        setServerError("Unable to load payment configuration. Please try again.");
-      });
+      .catch(() => setServerError("Unable to load payment configuration. Please try again."));
   }, []);
 
   const handleDetailsSubmit = async (values: CustomerValues) => {
     setIsCreatingIntent(true);
     setServerError(null);
-
     try {
       const res = await fetch(`${BASE}/api/stripe/create-payment-intent`, {
         method: "POST",
@@ -168,10 +142,8 @@ export default function CheckoutPage() {
           customer: values,
         }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to create order");
-
       setClientSecret(data.clientSecret);
       setOrderId(data.orderId);
       setStep("payment");
@@ -186,98 +158,64 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-10 max-w-5xl">
-      {/* Header */}
+      {/* Back */}
       <div className="flex items-center gap-4 mb-8">
         <Button variant="ghost" size="sm" asChild className="gap-1 text-muted-foreground">
           <Link href="/cart">
-            <ChevronLeft className="w-4 h-4" /> Back to bag
+            <ChevronLeft className="w-4 h-4 rtl:rotate-180" /> {t("checkout.backToBag")}
           </Link>
         </Button>
       </div>
 
-      {/* Progress */}
+      {/* Progress steps */}
       <div className="flex items-center gap-3 mb-8">
-        <div
-          className={`flex items-center gap-2 text-sm font-medium ${step === "details" ? "text-primary" : "text-muted-foreground"}`}
-        >
-          <span
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === "details" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-          >
+        <div className={`flex items-center gap-2 text-sm font-medium ${step === "details" ? "text-primary" : "text-muted-foreground"}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === "details" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
             1
           </span>
-          Your details
+          {t("checkout.stepDetails")}
         </div>
         <div className="flex-1 h-px bg-border" />
-        <div
-          className={`flex items-center gap-2 text-sm font-medium ${step === "payment" ? "text-primary" : "text-muted-foreground"}`}
-        >
-          <span
-            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === "payment" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
-          >
+        <div className={`flex items-center gap-2 text-sm font-medium ${step === "payment" ? "text-primary" : "text-muted-foreground"}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === "payment" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
             2
           </span>
-          Payment
+          {t("checkout.stepPayment")}
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Left: Form */}
+        {/* Form */}
         <div className="lg:col-span-3">
           {step === "details" && (
             <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <h2 className="font-serif text-2xl font-bold mb-6">Contact details</h2>
-              <form
-                onSubmit={form.handleSubmit(handleDetailsSubmit)}
-                className="space-y-5"
-              >
+              <h2 className="font-serif text-2xl font-bold mb-6">{t("checkout.detailsTitle")}</h2>
+              <form onSubmit={form.handleSubmit(handleDetailsSubmit)} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label htmlFor="name">Full name *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Sara Al-Hashimi"
-                      {...form.register("name")}
-                    />
+                    <Label htmlFor="name">{t("checkout.fullName")}</Label>
+                    <Input id="name" placeholder={t("checkout.fullNamePlaceholder")} {...form.register("name")} />
                     {form.formState.errors.name && (
-                      <p className="text-xs text-destructive">
-                        {form.formState.errors.name.message}
-                      </p>
+                      <p className="text-xs text-destructive">{form.formState.errors.name.message}</p>
                     )}
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="+971 50 000 0000"
-                      {...form.register("phone")}
-                    />
+                    <Label htmlFor="phone">{t("checkout.phone")}</Label>
+                    <Input id="phone" type="tel" placeholder={t("checkout.phonePlaceholder")} {...form.register("phone")} />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="sara@example.com"
-                    {...form.register("email")}
-                  />
+                  <Label htmlFor="email">{t("checkout.email")}</Label>
+                  <Input id="email" type="email" placeholder={t("checkout.emailPlaceholder")} {...form.register("email")} />
                   {form.formState.errors.email && (
-                    <p className="text-xs text-destructive">
-                      {form.formState.errors.email.message}
-                    </p>
+                    <p className="text-xs text-destructive">{form.formState.errors.email.message}</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="notes">Order notes (optional)</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Allergies, special requests, pickup time preference…"
-                    rows={3}
-                    {...form.register("notes")}
-                  />
+                  <Label htmlFor="notes">{t("checkout.notes")}</Label>
+                  <Textarea id="notes" placeholder={t("checkout.notesPlaceholder")} rows={3} {...form.register("notes")} />
                 </div>
 
                 {serverError && (
@@ -286,19 +224,14 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={isCreatingIntent}
-                >
+                <Button type="submit" size="lg" className="w-full" disabled={isCreatingIntent}>
                   {isCreatingIntent ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
-                      Preparing your order…
+                      <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin me-2" />
+                      {t("checkout.preparingOrder")}
                     </>
                   ) : (
-                    "Continue to Payment"
+                    t("checkout.continueToPayment")
                   )}
                 </Button>
               </form>
@@ -307,7 +240,7 @@ export default function CheckoutPage() {
 
           {step === "payment" && clientSecret && stripePromise && orderId !== null && (
             <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-              <h2 className="font-serif text-2xl font-bold mb-6">Payment</h2>
+              <h2 className="font-serif text-2xl font-bold mb-6">{t("checkout.paymentTitle")}</h2>
               <Elements
                 stripe={stripePromise}
                 options={{
@@ -323,20 +256,17 @@ export default function CheckoutPage() {
                   },
                 }}
               >
-                <PaymentForm
-                  orderId={orderId}
-                  onBack={() => setStep("details")}
-                />
+                <PaymentForm orderId={orderId} onBack={() => setStep("details")} />
               </Elements>
             </div>
           )}
         </div>
 
-        {/* Right: Order summary */}
+        {/* Order summary */}
         <div className="lg:col-span-2">
           <div className="sticky top-28 bg-card border border-border rounded-2xl p-6 shadow-sm">
             <h3 className="font-serif text-lg font-bold mb-4 flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4" /> Order summary
+              <ShoppingBag className="w-4 h-4" /> {t("checkout.orderSummary")}
             </h3>
 
             <div className="space-y-3 mb-4">
@@ -344,17 +274,11 @@ export default function CheckoutPage() {
                 <div key={item.productId} className="flex items-center gap-3">
                   <div className="relative w-10 h-10 rounded-md overflow-hidden bg-accent shrink-0">
                     {item.imageUrl ? (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-[8px]">
-                        Kanz
-                      </div>
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-[8px]">Kanz</div>
                     )}
-                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -end-1 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-bold rounded-full flex items-center justify-center">
                       {item.quantity}
                     </span>
                   </div>
@@ -368,11 +292,11 @@ export default function CheckoutPage() {
 
             <div className="border-t border-border pt-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t("checkout.subtotal")}</span>
                 <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-base">
-                <span>Total</span>
+                <span>{t("checkout.total")}</span>
                 <span className="text-primary">${subtotal.toFixed(2)}</span>
               </div>
             </div>
