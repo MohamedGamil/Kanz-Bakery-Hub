@@ -144,7 +144,7 @@ export default function ProductDetail() {
     });
   };
 
-  if (productLoading || !product) {
+  if (productLoading) {
     return (
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <Skeleton className="h-4 w-48 mb-8" />
@@ -158,6 +158,18 @@ export default function ProductDetail() {
             <Skeleton className="h-12 w-full" />
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="container mx-auto px-4 py-24 text-center">
+        <h2 className="text-2xl font-serif font-bold text-destructive mb-4">{t("productDetail.notFound")}</h2>
+        <p className="text-muted-foreground mb-8">{t("productDetail.notFoundDesc")}</p>
+        <Link href="/menu">
+          <Button>{t("productDetail.returnToMenu")}</Button>
+        </Link>
       </div>
     );
   }
