@@ -1,0 +1,47 @@
+Add **StreamPay** as an additional payment option for Kanz Bakery and integrate it securely using the official API documentation:
+
+`https://stream-app-service.streampay.sa/openapi.json`
+
+Implement the integration through a dedicated server-side payment service or adapter. Never expose the StreamPay API key to the frontend.
+
+Use StreamPay’s **Payment Links API** to create a checkout session when the customer chooses StreamPay. The payment flow should:
+
+1. Create or finalize the local order first.
+2. Create a StreamPay payment link using `POST /api/v2/payment_links`.
+3. Use **SAR** as the default currency.
+4. Set the payment link for a single payment where appropriate.
+5. Include the local order ID and relevant identifiers in `custom_metadata`.
+6. Configure success and failure redirect URLs.
+7. Redirect the customer to the generated StreamPay checkout URL.
+8. After returning to the website, verify the payment status server-side before marking the local order as paid.
+9. Never trust the browser redirect alone as proof of successful payment.
+10. Handle pending, successful, failed, cancelled, and integration-error states gracefully.
+
+Because StreamPay payment links reference StreamPay product IDs, keep the local product catalog cleanly mapped or synchronized with the corresponding StreamPay products rather than hard-coding IDs throughout the application.
+
+Persist relevant payment information locally, including:
+
+* Local order ID.
+* Payment provider: `streampay`.
+* StreamPay payment-link ID.
+* External payment or invoice ID when available.
+* Amount.
+* Currency.
+* Payment status.
+* Created and updated timestamps.
+
+Add placeholder configuration values to `.env.example`:
+
+```env
+STREAMPAY_API_BASE_URL=https://stream-app-service.streampay.sa
+STREAMPAY_API_KEY=replace_with_stream_pay_api_key
+
+STREAMPAY_SUCCESS_REDIRECT_URL=http://localhost:5000/payment/success
+STREAMPAY_FAILURE_REDIRECT_URL=http://localhost:5000/payment/failed
+```
+
+Use `STREAMPAY_API_KEY` only from the backend and send it using the required `x-api-key` header.
+
+Keep the payment integration modular so additional payment gateways can be added later without rewriting the checkout or order logic. The frontend should interact with a generic payment-provider abstraction rather than directly calling StreamPay.
+
+Ensure the complete payment experience works in both **English and Arabic**, supports **RTL**, is fully mobile-responsive, and provides clear loading, success, pending, cancellation, and failure states.
