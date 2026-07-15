@@ -5,6 +5,37 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { useCartStore, cartItemCount } from "@/store/cart";
 
+function BaguetteIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      {/*
+        Baguette: a slim diagonal loaf rotated ~40°.
+        Built from a rounded-rect body with pointed tips and three diagonal score slashes.
+      */}
+      <g transform="rotate(-40 16 16)">
+        {/* Body */}
+        <rect x="4" y="13" width="24" height="6" rx="3" fill="currentColor" fillOpacity="0.13" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+        {/* Left pointed tip */}
+        <path d="M4 16 Q2 16 4 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+        <path d="M4 16 Q2 16 4 19" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+        {/* Right pointed tip */}
+        <path d="M28 16 Q30 16 28 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+        <path d="M28 16 Q30 16 28 19" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+        {/* Score marks — three diagonal slashes */}
+        <line x1="11" y1="13.5" x2="9"  y2="18.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+        <line x1="16" y1="13.5" x2="14" y2="18.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+        <line x1="21" y1="13.5" x2="19" y2="18.5" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+      </g>
+    </svg>
+  );
+}
+
 function LanguageSwitcher({ className }: { className?: string }) {
   const { i18n } = useTranslation();
   const isAr = i18n.language === "ar";
@@ -18,7 +49,7 @@ function LanguageSwitcher({ className }: { className?: string }) {
       )}
       aria-label={isAr ? "Switch to English" : "التبديل للعربية"}
     >
-      {isAr ? "EN" : "عر"}
+      {isAr ? "EN" : "عربي"}
     </button>
   );
 }
@@ -45,9 +76,11 @@ export function Navbar() {
         <div className="flex h-16 sm:h-20 items-center justify-between gap-4">
           {/* Logo */}
           <div className="shrink-0">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2 group">
               <span className="font-serif text-2xl font-bold tracking-tight text-primary">Kanz</span>
               <span className="font-serif text-2xl tracking-tight text-foreground">Bakery</span>
+              {/* Baguette icon — always on the trailing (end) side of the wordmark */}
+              <BaguetteIcon className="w-7 h-7 text-primary opacity-80 group-hover:opacity-100 transition-opacity" />
             </Link>
           </div>
 
