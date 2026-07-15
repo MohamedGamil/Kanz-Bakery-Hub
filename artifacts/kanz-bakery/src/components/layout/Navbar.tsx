@@ -77,10 +77,10 @@ export function Navbar() {
           {/* Logo */}
           <div className="shrink-0">
             <Link href="/" className="flex items-center gap-2 group">
+              {/* Baguette icon — leading side: left in EN, right in AR (flex reverses with RTL dir) */}
+              <BaguetteIcon className="w-7 h-7 text-primary opacity-80 group-hover:opacity-100 transition-opacity" />
               <span className="font-serif text-2xl font-bold tracking-tight text-primary">Kanz</span>
               <span className="font-serif text-2xl tracking-tight text-foreground">Bakery</span>
-              {/* Baguette icon — always on the trailing (end) side of the wordmark */}
-              <BaguetteIcon className="w-7 h-7 text-primary opacity-80 group-hover:opacity-100 transition-opacity" />
             </Link>
           </div>
 
